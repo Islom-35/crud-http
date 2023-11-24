@@ -2,8 +2,17 @@ package app
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
+	"golang-project-template/internal/repository/psql"
+	"golang-project-template/internal/service"
+	"golang-project-template/internal/transport/rest"
+	"golang-project-template/pkg/database"
+	"log"
+	"net/http"
 	"os"
+	"time"
+
+	_ "github.com/lib/pq"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -11,11 +20,27 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Application entrypoint...
 
-		fmt.Println("hello world")
+		db, err := database.OpenDatabaseConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		// remove it when you run http/grpc server
-		c := make(chan string)
-		<-c
+		// init deps
+		booksRepo := psql.NewBook(db)
+		booksService := service.NewBooks(booksRepo)
+		handler := rest.NewHandler(booksService)
+
+		srv := &http.Server{
+			Addr:    ":5005",
+			Handler: handler.InitRouter(),
+		}
+		log.Println("Server Started at", time.Now().Format(time.RFC3339))
+
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatal(err)
+		}
+		
+
 	},
 }
 
