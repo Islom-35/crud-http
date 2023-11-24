@@ -1,12 +1,3 @@
-.env
-*.log
-*.DS_Store
-.vscode
-.idea
-.idea/
-__MACOSX/
-bin/
-/postgres-data
-.werf_secret_key
-.go-cache
 .go
+.env
+.go-cache
